@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "bin": "app.js",  // 添加这一行，指向应用程序的入口文件
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "pkg . --targets node16-linux-x64,node16-macos-x64,node16-win-x64"
