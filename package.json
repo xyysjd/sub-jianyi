@@ -3,10 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
-  "bin": "app.js",  // 添加这一行，指向应用程序的入口文件
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "pkg . --targets node16-linux-x64,node16-macos-x64,node16-win-x64"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
@@ -14,10 +12,8 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "fs": "^0.0.1-security",
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7"
-  },
-  "devDependencies": {
-    "pkg": "^5.3.3"
   }
 }
