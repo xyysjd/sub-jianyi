@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订阅转换</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* 全屏背景 */
+        body {
+            font-family: Arial, sans-serif;
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #d1a83f;
+            animation: hue 600s linear infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at 0% 100%, rgba(104,128,138,.4) 10%, rgba(138,114,76,0) 40%), 
+                        linear-gradient(to top, rgba(57,173,219,.25) 0%, rgba(42,60,87,.4) 100%), 
+                        linear-gradient(135deg, #670d10 0%, #092756 100%);
+            z-index: -2;
+        }
+
+        /* 星星动画 */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .stars .container {
+            position: absolute;
+            animation: stars 60s linear infinite;
+        }
+
+        .stars .container .star {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: twinkle 1s infinite;
+            transform: translateZ(0);
+        }
+
+        @keyframes stars {
+            0% { top: 110vh; }
+            100% { top: -10vh; }
+        }
+
+        @keyframes twinkle {
+            0%, 80%, 100% { opacity: 0.7; }
+            95% { opacity: 1; }
+        }
+
+        @keyframes hue {
+            0% { filter: hue-rotate(0deg); }
+            100% { filter: hue-rotate(360deg); }
+        }
+
+        /* 粒子效果 */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particles .particle {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: particleMove 2s linear infinite;
+        }
+
+        @keyframes particleMove {
+            0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(calc(100vw * 2), calc(100vh * 2)) scale(0.2);
+                opacity: 0;
+            }
+        }
+
+        /* 主要内容容器 */
+        .content-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 800px;
+            background-color: rgba(255, 255, 255, 0.8); /* 半透明背景 */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        /* 页面内容 */
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            min-height: 100px;
+        }
+
+        select {
+            padding: 8px;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+
+        input[type="button"] {
+            padding: 10px 20px;
+            margin: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        input[type="button"]:hover {
+            background-color: #0056b3;
+        }
+
+        #kd {
+            color: #ed6668;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+
+        #shortLink {
+            color: #28a745;
+            display: inline-block;
+            margin-top: 20px;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="background"></div>
+<div class="stars">
+    <div class="container">
+        <!-- 动态星星容器 -->
+    </div>
+</div>
+
+<div class="particles">
+    <!-- 粒子容器 -->
+</div>
+
+<script>
+// 判断是否为有效的 URL
+function isValidUrl(str) {
+    var pattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+                             '(([A-Z0-9](?:[A-Z0-9-]*[A-Z0-9])?\\.)+(?:[A-Z]{2,6}\\.?|[A-Z0-9-]{2,}\\.?)|' + // domain...
+                             'localhost|' + // localhost...
+                             '\\d{1,3}\\.?\\d{1,3}\\.?\\d{1,3}\\.?\\d{1,3}|' + // ...or ipv4
+                             '\\[?[A-F0-9]*:[A-F0-9:]+\\]?)' + // ...or ipv6
+                             '(\\:\\d+)?(\\/[-A-Z0-9+&@#/%=~_|$?!:,.]*[-A-Z0-9+&@#/%=~_|$])?', 'i');
+    return pattern.test(str);
+}
+
+function create() {
+    var kd = document.getElementById('kd');
+    var textInput = document.getElementById('textInput');
+    var subtype = document.getElementById('subtype');
+    
+    var formData = new FormData();
+
+    var inputText = textInput.value.trim();
+    
+    // 如果输入的是有效的 URL，则直接生成链接
+    if (isValidUrl(inputText)) {
+        var url = 'https://sub.lzjss.eu.org/sub?target=' + encodeURIComponent(subtype.value) + 
+                  '&url=' + encodeURIComponent(inputText) + 
+                  '&insert=false' +
+				  '&config=' + encodeURIComponent('https://raw.githubusercontent.com/xyysjd/ClashRule/refs/heads/main/GeneralClashRule.ini');
+        kd.href = url;
+        kd.style.display = 'inline';  // 显示链接
+        kd.style.pointerEvents = 'auto'; // 允许点击
+        kd.innerText = url;
+    } else if (inputText !== "") {
+        // 如果输入的是文本内容
+        var encodedText = btoa(inputText.replace(/\n/g, "\n"));  // 对整个文本进行 Base64 编码
+
+        var blob = new Blob([encodedText], { type: 'text/plain' });
+        var file = new File([blob], 'subscription.txt', { type: 'text/plain' });
+        
+        formData.append("file", file);
+
+        // 上传文本内容到后端
+        fetch("https://sub.xpy.us.kg/upload", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            var rawUrl = data.rawUrl;
+            var url = 'https://sub.lzjss.eu.org/sub?target=' + encodeURIComponent(subtype.value) + 
+                      '&url=' + encodeURIComponent(rawUrl) + 
+                      '&insert=false' +
+					  '&config=' + encodeURIComponent('https://raw.githubusercontent.com/xyysjd/ClashRule/refs/heads/main/GeneralClashRule.ini');
+            kd.href = url;
+            kd.style.display = 'inline';  // 显示链接
+            kd.style.pointerEvents = 'auto'; // 允许点击
+            kd.innerText = url;
+        })
+        .catch(error => {
+            alert("文本上传失败: " + error);
+        });
+    } else {
+        alert("请提供有效的文本或链接！");
+    }
+}
+
+function createShortLink() {
+    var kd = document.getElementById('kd');
+    var shortLinkElem = document.getElementById('shortLink');
+    if (kd.style.display === 'inline') {
+        var longUrl = kd.href;
+        var encodedUrl = btoa(longUrl); // 对长链接进行 Base64 编码
+
+        fetch('https://dlj.lzjss.eu.org/short', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: 'longUrl=' + encodeURIComponent(encodedUrl)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // 确保服务器返回的数据格式正确
+            if (data.Code === 1 && data.ShortUrl) {
+                shortLinkElem.innerText = "短链接: " + data.ShortUrl;
+                shortLinkElem.href = data.ShortUrl;  // 更新 href 为短链接
+                shortLinkElem.style.display = 'inline';  // 显示短链接
+                shortLinkElem.style.pointerEvents = 'auto'; // 允许点击
+            } else {
+                shortLinkElem.innerText = "短链接生成失败";
+                shortLinkElem.style.display = 'inline';
+            }
+        })
+        .catch(error => {
+            console.error('生成短链接时出错:', error);
+        });
+    }
+}
+
+
+function copyLink(elementId) {
+    var linkElement = document.getElementById(elementId);
+    if (linkElement.style.display === 'inline' && linkElement.href) {
+        var shortUrl = linkElement.href;  // 获取 href 中的短链接 URL
+
+        // 创建一个临时的文本输入框来复制短链接
+        var tempInput = document.createElement('input');
+        document.body.appendChild(tempInput);
+        tempInput.value = shortUrl;  // 设置输入框的值为短链接
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);  // 移除临时输入框
+
+        alert('短链接已复制到剪贴板！');
+    } else {
+        alert('短链接不可用，无法复制！');
+    }
+}
+
+
+// 动态生成星星
+for (let i = 0; i < 100; i++) {
+    let starContainer = document.createElement('div');
+    starContainer.classList.add('container');
+
+    let star = document.createElement('div');
+    star.classList.add('star');
+
+    // 随机大小和位置
+    let size = Math.floor(Math.random() * (30 - 2 + 1)) + 2; // 随机大小
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.top = Math.random() * 100 + 'vh';
+    star.style.left = Math.random() * 100 + 'vw';
+    star.style.animationDuration = Math.random() * 3 + 1 + 's';
+    star.style.animationDelay = Math.random() * 3 + 's';
+
+    starContainer.appendChild(star);
+    document.querySelector('.stars').appendChild(starContainer);
+}
+
+// 动态生成粒子
+for (let i = 0; i < 100; i++) {
+    let particle = document.createElement('div');
+    particle.classList.add('particle');
+
+    // 随机粒子位置和动画
+    particle.style.left = Math.random() * 100 + 'vw';
+    particle.style.top = Math.random() * 100 + 'vh';
+    particle.style.animationDuration = Math.random() * 5 + 2 + 's';
+    particle.style.animationDelay = Math.random() * 3 + 's';
+
+    document.querySelector('.particles').appendChild(particle);
+}
+</script>
+
+<div class="content-wrapper">
+    <h2>无敌简易版订阅转换</h2>
+    <textarea id="textInput" placeholder="粘贴长链接或输入文本..."></textarea><br>
+
+    <label for="subtype">选择类型: </label>
+    <select id="subtype">
+        <option value="clash">Clash 配置</option>
+        <option value="singbox">singbox 配置</option>
+    </select><br><br>
+
+    <input type="button" value="生成订阅链接" onclick="create()">
+    <input type="button" value="生成短链接" onclick="createShortLink()"><br>
+	<input type="button" value="复制订阅链接" onclick="copyLink('kd')">
+    <input type="button" value="复制短链接" onclick="copyLink('shortLink')"><br>
+    <a id="kd" target="_blank" style="display:none;"></a>
+    <span id="shortLink" style="display:none;"></span>
+</div>
+
+</body>
+</html>
