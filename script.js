@@ -73,16 +73,20 @@ function create() {
 
     var inputText = textInput.value.trim();
     var backendUrl = customBackend.value.trim();
-    var remotUrl = remoteConfig.value.trim()
-	
-    if (isValidUrl(inputText)) {
+    var remotUrl = remoteConfig.value.trim();
+    
+    // 处理多个URL
+    var urls = inputText.split('\n').map(url => url.trim()).filter(url => url !== '').join('|');
+
+    if (isValidUrl(urls)) {
         var url = backendUrl + '/sub?target=' + encodeURIComponent(subtype.value) + 
-                  '&url=' + encodeURIComponent(inputText) + 
+                  '&url=' + encodeURIComponent(urls) + 
                   '&insert=false' +
 				  '&scv=true' +
                   '&config=' + encodeURIComponent(remotUrl);				  
         kd.href = url;
         createLinkCard('订阅链接', url, 'kd');
+        copyLink('kd');  // 自动复制链接
     } else if (inputText !== "") {
         var encodedText = btoa(inputText.replace(/\n/g, "\n"));
         var blob = new Blob([encodedText], { type: 'text/plain' });
@@ -104,6 +108,7 @@ function create() {
                       '&config=' + encodeURIComponent(remotUrl);
             kd.href = url;
             createLinkCard('订阅链接', url, 'kd');
+            copyLink('kd');  // 自动复制链接
         })
         .catch(error => {
             alert("文本上传失败: " + error);
@@ -112,6 +117,8 @@ function create() {
         alert("请提供有效的文本或链接！");
     }
 }
+
+
 
 function createShortLink() {
     var kd = document.getElementById('kd');
@@ -135,6 +142,7 @@ function createShortLink() {
         .then(data => {
             if (data.Code === 1 && data.ShortUrl) {
                 createLinkCard('短链接', data.ShortUrl, 'shortLink');
+                copyLink('shortLink');  // 自动复制短链接
             } else {
                 alert("短链接生成失败");
             }
@@ -146,6 +154,7 @@ function createShortLink() {
         alert('请先生成有效的订阅链接');
     }
 }
+
 
 
 function copyLink(elementId) {
